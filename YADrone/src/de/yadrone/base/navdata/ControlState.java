@@ -2,7 +2,7 @@ package de.yadrone.base.navdata;
 
 
 public enum ControlState {
-    DEFAULT, INIT, LANDED, FLYING, HOVERING, TEST, TRANS_TAKEOFF, TRANS_GOTOFIX, TRANS_LANDING;
+    DEFAULT, INIT, LANDED, FLYING, HOVERING, TEST, TRANS_TAKEOFF, TRANS_GOTOFIX, TRANS_LANDING, MODE_9;
 
     public static ControlState fromInt(int v) {
         ControlState[] values = values();

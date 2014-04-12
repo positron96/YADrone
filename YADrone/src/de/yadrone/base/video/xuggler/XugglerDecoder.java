@@ -198,7 +198,7 @@ public class XugglerDecoder implements VideoDecoder
 				catch(Exception exc)
 				{
 					// hopefully nothing really bad (probably failed to decode single video frame)
-//					System.err.println("XugglerDecoder: Exception while decoding video: " + exc.getMessage());
+					System.err.println("XugglerDecoder: Exception while decoding video: " + exc);
 //					exc.printStackTrace();
 				}
 			}
@@ -214,7 +214,7 @@ public class XugglerDecoder implements VideoDecoder
 			}
 
 		}
-		System.out.println("XugglerDecoder: clean up and close stream ...");
+		System.out.println("XugglerDecoder: loop quit: doStop="+doStop+"; clean up and close stream ...");
 		/*
 		 * Technically since we're exiting anyway, these will be cleaned up by
 		 * the garbage collector... but because we're nice people and want to be

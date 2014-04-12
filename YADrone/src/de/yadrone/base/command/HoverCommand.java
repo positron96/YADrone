@@ -13,4 +13,12 @@ public class HoverCommand extends PCMDCommand {
 		return true;
 	}
 
+
+	public static class StickyHover extends HoverCommand {
+		@Override
+		public boolean isSticky() {
+			return true;
+		}
+	}
+
 }

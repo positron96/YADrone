@@ -29,6 +29,9 @@ import de.yadrone.base.exception.VideoException;
 import de.yadrone.base.manager.AbstractTCPManager;
 import de.yadrone.base.utils.ARDroneUtils;
 import de.yadrone.base.video.xuggler.XugglerDecoder;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class VideoManager extends AbstractTCPManager implements ImageListener 
 {
@@ -114,6 +117,13 @@ public class VideoManager extends AbstractTCPManager implements ImageListener
 //			manager.setVideoBitrateControl(VideoBitRateMode.DISABLED); // bitrate set to maximum
 			
 			System.out.println("VideoManager: decode ");
+			InputStream ii = getInputStream();
+			byte buf[] = new byte[1024];
+			int rd;
+			while( (rd = ii.read(buf) ) != -1 ) {
+				oo.write(buf, 0, rd);
+				oo.flush();
+			}*/
 			decoder.decode(getInputStream());
 		}
 		catch(Exception exc)
@@ -123,6 +133,7 @@ public class VideoManager extends AbstractTCPManager implements ImageListener
 		}
 		
 		close();
+		if(!Thread.currentThread().isInterrupted()) reinitialize();
 	}
 
 	@Override
