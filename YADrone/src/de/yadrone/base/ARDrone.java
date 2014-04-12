@@ -254,7 +254,11 @@ public class ARDrone implements IARDrone, IExceptionListener {
 		if (commandManager != null)
 			commandManager.hover();
 	}
-	
+	public void hoverSticky() {
+		if (commandManager != null)
+			commandManager.hoverSticky();
+	}
+
 	@Override
 	public void setMaxAltitude(int altitude) {
 		if (commandManager != null)
