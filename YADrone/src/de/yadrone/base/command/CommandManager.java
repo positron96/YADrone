@@ -48,6 +48,8 @@ public class CommandManager extends AbstractManager
 	
 	private boolean debug = false;
 
+	private ExecutorService pool = Executors.newFixedThreadPool(10);
+
 	public CommandManager(InetAddress inetaddr, IExceptionListener excListener) {
 		super(inetaddr);
 		this.q = new CommandQueue(100);
@@ -113,8 +115,9 @@ public class CommandManager extends AbstractManager
 		timer.schedule(new TimerTask() {
 			public void run()
 			{
-				new Thread(runnable).start();
-			}			
+				//new Thread(runnable).start();
+				pool.submit(runnable);
+			}
 		}, millis);
 	}
 	
@@ -124,6 +127,7 @@ public class CommandManager extends AbstractManager
 	}
 
 	public CommandManager flatTrim() {
+		System.out.println(this+".flatTrim()");
 		q.add(new FlatTrimCommand());
 		return this;
 	}
@@ -156,10 +160,12 @@ public class CommandManager extends AbstractManager
 	}
 
 	public CommandManager spinRight(int speed) {
+		System.out.println(this+": spin right");
 		return move(0f, 0f, 0f, perc2float(speed));
 	}
 
 	public CommandManager spinLeft(int speed) {
+		System.out.println(this+": spin left");
 		return move(0f, 0f, 0f, -perc2float(speed));
 	}
 
@@ -214,7 +220,12 @@ public class CommandManager extends AbstractManager
 		q.add(new HoverCommand());
 		return this;
 	}
-	
+
+	public CommandManager hoverSticky() {
+		q.add(new HoverCommand.StickyHover());
+		return this;
+	}
+
 	private float perc2float(int speed) {
 		return (float) (speed / 100.0f);
 	}
@@ -826,7 +837,7 @@ public class CommandManager extends AbstractManager
 					dt = t - t0;
 				}
 				c = q.poll(dt, TimeUnit.MILLISECONDS);
-				// System.out.println(c);
+				//System.out.println(System.currentTimeMillis()+"ms "+this+".run(): polled cmd "+c);
 				if (c == null) {
 					if (cs == null) {
 						c = cAlive;
@@ -844,6 +855,7 @@ public class CommandManager extends AbstractManager
 						cs = null;
 					}
 				}
+				System.out.println(System.currentTimeMillis()+"ms "+this+".run(): sending "+c);
 				if (c.needControlAck()) {
 					waitForControlAck(false);
 					sendCommand(c);
@@ -871,13 +883,19 @@ public class CommandManager extends AbstractManager
 
 	private CommandManager initARDrone() 
 	{
-		new Thread(new Runnable() {
+		/*new Thread(new Runnable() {
 			public void run()
 			{
 				setMulticonfiguration();
-			}			
-		}).start();;
-		
+			}
+		}).start();;*/
+		pool.submit(new Runnable() {
+			public void run()
+			{
+				setMulticonfiguration();
+			}
+		});
+
 		waitFor(5000);
 		
 		// pmode parameter and first misc parameter are related
