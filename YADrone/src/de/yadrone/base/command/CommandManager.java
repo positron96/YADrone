@@ -461,6 +461,11 @@ public class CommandManager extends AbstractManager
 		q.add(new ConfigureCommand("control:hovering_range", range));
 		return this;
 	}
+	
+	public CommandManager setMaxEulerAngleDeg(float angle) {
+		setMaxEulerAngle((float)Math.toRadians(angle));
+		return this;
+	}
 
 	/**
 	 * Set the maximum bending angle (euler angle).
@@ -836,10 +841,10 @@ public class CommandManager extends AbstractManager
 				} else {
 					// if there is a sticky command, we can wait until we need to deliver it.
 					long t = System.currentTimeMillis();
-					dt = t - t0;
+					dt = 40;// t - t0;
 				}
 				c = q.poll(dt, TimeUnit.MILLISECONDS);
-				//System.out.println(System.currentTimeMillis()+"ms "+this+".run(): polled cmd "+c);
+				if(debug) System.out.println(System.currentTimeMillis()+"ms "+this+".run(): polled cmd "+c);
 				if (c == null) {
 					if (cs == null) {
 						c = cAlive;
@@ -848,6 +853,7 @@ public class CommandManager extends AbstractManager
 						t0 = System.currentTimeMillis();
 					}
 				} else {
+					//System.out.println("CommandManager.run: new command "+c);
 					if (c.isSticky()) {
 						// sticky commands replace previous sticky
 						cs = c;
@@ -857,7 +863,7 @@ public class CommandManager extends AbstractManager
 						cs = null;
 					}
 				}
-				System.out.println(System.currentTimeMillis()+"ms "+this+".run(): sending "+c);
+				//System.out.println(System.currentTimeMillis()+"ms "+this+".run(): sending "+c);
 				if (c.needControlAck()) {
 					waitForControlAck(false);
 					sendCommand(c);
@@ -913,9 +919,14 @@ public class CommandManager extends AbstractManager
 		return this;
 	}
 
+	long t0 = System.currentTimeMillis();
+	long size;
+	long cmds;
+	SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
+	
 	private synchronized void sendCommand(ATCommand c) throws InterruptedException, IOException {
-		if (!(c instanceof KeepAliveCommand) && debug) {
-			 System.out.println("CommandManager: send " + c.getCommandString(seq));
+		if ( /*!(c instanceof KeepAliveCommand) &&*/ debug) {
+			 System.out.println(sdf.format(new Date())+": CommandManager: send " + c.getCommandString(seq));
 		}
 		
 		String config = "AT*CONFIG_IDS=" + (seq++) + ",\"" + CommandManager.SESSION_ID + "\",\"" + CommandManager.PROFILE_ID +"\",\"" + CommandManager.APPLICATION_ID + "\"" + "\r"; // AT*CONFIG_IDS=5,"aabbccdd","bbccddee","ccddeeff"
@@ -926,6 +937,19 @@ public class CommandManager extends AbstractManager
 		byte[] buffer = new byte[configPrefix.length + command.length];
 		System.arraycopy(configPrefix, 0, buffer, 0, configPrefix.length);
 		System.arraycopy(command, 0, buffer, configPrefix.length, command.length);
+		
+		size += buffer.length;
+		cmds ++;
+		if(System.currentTimeMillis() > t0+1000) {
+			long dt = System.currentTimeMillis()-t0;
+			System.out.println("Command bitrate: "+ 
+					(size*1000d/dt/1024 )+" kbps; "+
+					cmds*1000d/dt+" commands; avg command size: "+
+					1d*size/cmds);
+			size = 0;
+			cmds = 0;
+			t0 = System.currentTimeMillis();
+		}
 		
 		DatagramPacket packet = new DatagramPacket(buffer, buffer.length, inetaddr, ARDroneUtils.PORT);
 		socket.send(packet);
@@ -971,6 +995,21 @@ public class CommandManager extends AbstractManager
 	
 	public void debugEnable(boolean val) {
 		debug = val;
+	}
+	
+	@Override
+	public void start() {
+		System.out.println("CommandManager: Starting " + getClass().getSimpleName());
+		if (thread == null) {
+			doStop = false;
+			String name = getClass().getSimpleName();
+			thread = new Thread(this, name);
+			thread.setPriority(Thread.MAX_PRIORITY);
+			thread.start();
+		} else {
+			System.out.println("Already started before " + getClass().getSimpleName());
+		}
+
 	}
 
 }

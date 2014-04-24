@@ -117,7 +117,7 @@ public class VideoManager extends AbstractTCPManager implements ImageListener
 //			manager.setVideoBitrateControl(VideoBitRateMode.DISABLED); // bitrate set to maximum
 			
 			System.out.println("VideoManager: decode ");
-			InputStream ii = getInputStream();
+			/*InputStream ii = getInputStream();
 			byte buf[] = new byte[1024];
 			int rd;
 			while( (rd = ii.read(buf) ) != -1 ) {
