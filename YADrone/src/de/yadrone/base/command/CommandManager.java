@@ -942,9 +942,9 @@ public class CommandManager extends AbstractManager
 		cmds ++;
 		if(System.currentTimeMillis() > t0+1000) {
 			long dt = System.currentTimeMillis()-t0;
-			System.out.println("Command bitrate: "+ 
-					(size*1000d/dt/1024 )+" kbps; "+
-					cmds*1000d/dt+" commands; avg command size: "+
+			System.out.printf("Command bitrate: %.3f kbps; %.2f commands, avg %.3f b/cmd\n",
+					size*1000d/dt/1024,
+					cmds*1000d/dt,
 					1d*size/cmds);
 			size = 0;
 			cmds = 0;
