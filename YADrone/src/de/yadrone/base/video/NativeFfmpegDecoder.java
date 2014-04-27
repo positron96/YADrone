@@ -8,17 +8,9 @@ package de.yadrone.base.video;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.LineNumberReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.imageio.stream.ImageInputStream;
 
 /**
  *
@@ -41,12 +33,12 @@ public class NativeFfmpegDecoder implements VideoDecoder {
 				//"-loglevel", "fatal",
 				"-probesize", "2048", "-flags", "low_delay",
 				"-i", "-",
-				"-fflags", "nobuffer",
+				//"-fflags", "nobuffer",
 				//* use the following to skip half the frames
 				//"-filter:v", "setpts=0.5*PTS",
 				"-f", "image2pipe",
 				//"-c:v", "bmp",
-				"-c:v", "rawvideo","-pix_fmt", "bgr24",
+				"-vcodec", "rawvideo","-pix_fmt", "bgr24",
 				"-"
 				);
 		//pb.redirectError(ProcessBuilder.Redirect.INHERIT);
@@ -61,6 +53,11 @@ public class NativeFfmpegDecoder implements VideoDecoder {
 					try {
 						while(true) {
 							String s = rd.readLine();
+							if(s==null) {
+								System.out.println("FFMPEG stderr EOF");
+								break;
+							}
+							//System.err.println("FFMPEG: "+s);
 							if(vW==-1) {
 								Matcher m = reg.matcher(s);
 								if(m.find()) {
