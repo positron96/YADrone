@@ -124,12 +124,13 @@ public class CommandManager extends AbstractManager
 	}
 	
 	public CommandManager landing() {
+		System.out.println("CommandManager.landing()");
 		q.add(new LandCommand());
 		return this;
 	}
 
 	public CommandManager flatTrim() {
-		System.out.println(this+".flatTrim()");
+		System.out.println("CommandManager.flatTrim()");
 		q.add(new FlatTrimCommand());
 		return this;
 	}
@@ -210,6 +211,7 @@ public class CommandManager extends AbstractManager
 	}
 
 	public CommandManager move(int speedX, int speedY, int speedZ, int speedSpin) {
+		System.out.println("CommandManager.move("+speedX+", "+speedY+", "+speedZ+", "+speedSpin+")");
 		return move(-perc2float(speedY), -perc2float(speedX), -perc2float(speedZ), -perc2float(speedSpin));
 	}
 
