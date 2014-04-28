@@ -23,15 +23,10 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 
 import de.yadrone.base.command.CommandManager;
-import de.yadrone.base.command.VideoBitRateMode;
 import de.yadrone.base.exception.IExceptionListener;
 import de.yadrone.base.exception.VideoException;
 import de.yadrone.base.manager.AbstractTCPManager;
 import de.yadrone.base.utils.ARDroneUtils;
-import de.yadrone.base.video.xuggler.XugglerDecoder;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 public class VideoManager extends AbstractTCPManager implements ImageListener 
 {
