@@ -35,7 +35,6 @@ import de.yadrone.base.navdata.NavDataManager;
 import de.yadrone.base.video.NativeFfmpegDecoder;
 import de.yadrone.base.video.VideoDecoder;
 import de.yadrone.base.video.VideoManager;
-import de.yadrone.base.video.xuggler.XugglerDecoder;
 
 public class ARDrone implements IARDrone, IExceptionListener {
 
