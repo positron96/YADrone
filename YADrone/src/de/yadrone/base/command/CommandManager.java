@@ -32,11 +32,15 @@ import de.yadrone.base.exception.IExceptionListener;
 import de.yadrone.base.manager.AbstractManager;
 import de.yadrone.base.navdata.CadType;
 import de.yadrone.base.utils.ARDroneUtils;
+import dronecontrolcenter.ControlWindow;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-public class CommandManager extends AbstractManager 
-{
+public class CommandManager extends AbstractManager {
+
+	private static final Logger logger = Logger.getLogger(CommandManager.class.getName());
 
 	public final static String APPLICATION_ID = "aabbccdd";
 	public final static String PROFILE_ID = "bbccddee";
@@ -47,8 +51,6 @@ public class CommandManager extends AbstractManager
 	private Timer timer;
 
 	private static int seq = 1;
-	
-	private boolean debug = false;
 
 	private ExecutorService pool = Executors.newFixedThreadPool(10);
 
@@ -124,13 +126,13 @@ public class CommandManager extends AbstractManager
 	}
 	
 	public CommandManager landing() {
-		System.out.println("CommandManager.landing()");
+		logger.info("landing");
 		q.add(new LandCommand());
 		return this;
 	}
 
 	public CommandManager flatTrim() {
-		System.out.println("CommandManager.flatTrim()");
+		logger.info("CommandManager.flatTrim()");
 		q.add(new FlatTrimCommand());
 		return this;
 	}
@@ -163,12 +165,12 @@ public class CommandManager extends AbstractManager
 	}
 
 	public CommandManager spinRight(int speed) {
-		System.out.println(this+": spin right");
+		logger.info("spin right");
 		return move(0f, 0f, 0f, perc2float(speed));
 	}
 
 	public CommandManager spinLeft(int speed) {
-		System.out.println(this+": spin left");
+		logger.info("spin left");
 		return move(0f, 0f, 0f, -perc2float(speed));
 	}
 
@@ -200,18 +202,25 @@ public class CommandManager extends AbstractManager
 		return this;
 	}
 
+	/** params are fractions of maximum speed in range 0..1 */
 	public CommandManager move(float lrtilt, float fbtilt, float vspeed, float aspeed) {
 		lrtilt = limit(lrtilt, -1f, 1f);
 		fbtilt = limit(fbtilt, -1f, 1f);
 		vspeed = limit(vspeed, -1f, 1f);
 		aspeed = limit(aspeed, -1f, 1f);
-//		System.out.println("CommandManager: Move lrTilt=" + lrtilt + " fbtilt=" + fbtilt + " vspeed=" + vspeed + " aspeed=" + aspeed);
+		logger.log(Level.INFO, "CommandManager: move lrTilt={0} fbtilt={1} vspeed={2} aspeed={3}", new Object[]{lrtilt, fbtilt, vspeed, aspeed});
 		q.add(new MoveCommand(false, lrtilt, fbtilt, vspeed, aspeed));
 		return this;
 	}
 
+	/** params are percentages in range 0..100 of the maximum value.
+	 * @param speedX f->b axis
+	 * @param speedY r->l axis
+	 * @param speedZ t->b axis
+	 * @param speedSpin l--r axis
+	 */
 	public CommandManager move(int speedX, int speedY, int speedZ, int speedSpin) {
-		System.out.println("CommandManager.move("+speedX+", "+speedY+", "+speedZ+", "+speedSpin+")");
+		logger.info("move("+speedX+", "+speedY+", "+speedZ+", "+speedSpin+")");
 		return move(-perc2float(speedY), -perc2float(speedX), -perc2float(speedZ), -perc2float(speedSpin));
 	}
 
@@ -221,11 +230,13 @@ public class CommandManager extends AbstractManager
 	}
 
 	public CommandManager hover() {
+		logger.info("hover");
 		q.add(new HoverCommand());
 		return this;
 	}
 
 	public CommandManager hoverSticky() {
+		logger.info("hoverSticky");
 		q.add(new HoverCommand.StickyHover());
 		return this;
 	}
@@ -487,7 +498,7 @@ public class CommandManager extends AbstractManager
 	 */
 	public CommandManager setMaxEulerAngle(Location l, float angle) {
 		angle = limit(angle, 0f, 0.52f);
-		System.out.println("CommandManager: setMaxEulerAngle (bendingAngle): " + angle + " rad");
+		logger.info("CommandManager: setMaxEulerAngle (bendingAngle): " + angle + " rad");
 		String command = "control:" + l.getCommandPrefix() + "euler_angle_max";
 		q.add(new ConfigureCommand(command, String.valueOf(angle)));
 		return this;
@@ -509,7 +520,7 @@ public class CommandManager extends AbstractManager
 	 */
 	public CommandManager setMaxAltitude(Location l, int altitude) {
 		altitude = limit(altitude, 0, 100000);
-		System.out.println("CommandManager: setMaxAltitude: " + altitude + " mm");
+		logger.info("CommandManager: setMaxAltitude: " + altitude + " mm");
 		String command = "control:" + l.getCommandPrefix() + "altitude_max";
 		q.add(new ConfigureCommand(command, altitude));
 		return this;
@@ -554,7 +565,7 @@ public class CommandManager extends AbstractManager
 	 */
 	public CommandManager setMaxVz(Location l, int speed) {
 		speed = limit(speed, 0, 2000);
-		System.out.println("CommandManager: setMaxVz (verticalSpeed): " + speed + " mm");
+		logger.info("CommandManager: setMaxVz (verticalSpeed): " + speed + " mm");
 		String command = "control:" + l.getCommandPrefix() + "control_vz_max";
 		q.add(new ConfigureCommand(command, speed));
 		return this;
@@ -594,7 +605,7 @@ public class CommandManager extends AbstractManager
 	 * @param outdoor_hull  TRUE, if outdoor shell is used. FALSE, if indoor shell is used.
 	 */
 	public CommandManager setOutdoor(boolean flying_outdoor, boolean outdoor_hull) {
-		System.out.println("CommandManager: setOutdoor(flyingOutdoor,usingOutdoorHull) = " + flying_outdoor + "," + outdoor_hull);
+		logger.info("CommandManager: setOutdoor(flyingOutdoor,usingOutdoorHull) = " + flying_outdoor + "," + outdoor_hull);
 		q.add(new ConfigureCommand("control:outdoor", flying_outdoor));
 		q.add(new ConfigureCommand("control:flight_without_shell", outdoor_hull));
 		return this;
@@ -846,7 +857,7 @@ public class CommandManager extends AbstractManager
 					dt = 40;// t - t0;
 				}
 				c = q.poll(dt, TimeUnit.MILLISECONDS);
-				if(debug) System.out.println(System.currentTimeMillis()+"ms "+this+".run(): polled cmd "+c);
+				logger.finest(System.currentTimeMillis()+"ms "+this+".run(): polled cmd "+c);
 				if (c == null) {
 					if (cs == null) {
 						c = cAlive;
@@ -888,7 +899,7 @@ public class CommandManager extends AbstractManager
 		}
 		close();
 		timer.cancel();
-		System.out.println("doStop() called ? " + doStop + " ... Stopped " + getClass().getSimpleName());
+		logger.config("doStop() called ? " + doStop + " ... Stopped " + getClass().getSimpleName());
 	}
 
 	private CommandManager initARDrone() 
@@ -927,9 +938,7 @@ public class CommandManager extends AbstractManager
 	SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
 	
 	private synchronized void sendCommand(ATCommand c) throws InterruptedException, IOException {
-		if ( /*!(c instanceof KeepAliveCommand) &&*/ debug) {
-			 System.out.println(sdf.format(new Date())+": CommandManager: send " + c.getCommandString(seq));
-		}
+		logger.fine("send " + c.getCommandString(seq));
 		
 		String config = "AT*CONFIG_IDS=" + (seq++) + ",\"" + CommandManager.SESSION_ID + "\",\"" + CommandManager.PROFILE_ID +"\",\"" + CommandManager.APPLICATION_ID + "\"" + "\r"; // AT*CONFIG_IDS=5,"aabbccdd","bbccddee","ccddeeff"
 		byte[] configPrefix = config.getBytes("ASCII");
@@ -944,10 +953,10 @@ public class CommandManager extends AbstractManager
 		cmds ++;
 		if(System.currentTimeMillis() > t0+1000) {
 			long dt = System.currentTimeMillis()-t0;
-			System.out.printf("Command bitrate: %.3f kbps; %.2f commands, avg %.3f b/cmd\n",
+			logger.log(Level.FINE, "Command bitrate: {0} kbps; {1} commands, avg {2} b/cmd",new Object[]{
 					size*1000d/dt/1024,
 					cmds*1000d/dt,
-					1d*size/cmds);
+					1d*size/cmds});
 			size = 0;
 			cmds = 0;
 			t0 = System.currentTimeMillis();
@@ -989,19 +998,15 @@ public class CommandManager extends AbstractManager
 				}
 			}
 			if (n == 0 && controlAck != b) {
-				System.err.println("Control ack timeout " + String.valueOf(b));
+				logger.warning("Control ack timeout " + String.valueOf(b));
 				excListener.exeptionOccurred(new CommandException(new RuntimeException("Control ACK timeout")));
 			}
 		}
 	}
 	
-	public void debugEnable(boolean val) {
-		debug = val;
-	}
-	
 	@Override
 	public void start() {
-		System.out.println("CommandManager: Starting " + getClass().getSimpleName());
+		logger.info("Starting");
 		if (thread == null) {
 			doStop = false;
 			String name = getClass().getSimpleName();
@@ -1009,7 +1014,8 @@ public class CommandManager extends AbstractManager
 			thread.setPriority(Thread.MAX_PRIORITY);
 			thread.start();
 		} else {
-			System.out.println("Already started before " + getClass().getSimpleName());
+			//System.out.println();
+			logger.log(Level.WARNING, "Already started before {0}", getClass().getSimpleName());
 		}
 
 	}

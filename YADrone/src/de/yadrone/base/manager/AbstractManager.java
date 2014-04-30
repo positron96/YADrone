@@ -22,9 +22,12 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 // TODO: investigate if we can refactor common parts with AbstractTCPManager
 public abstract class AbstractManager implements Runnable {
+	private static final Logger logger = Logger.getLogger(AbstractManager.class.getName());
 
 	protected InetAddress inetaddr = null;
 	protected DatagramSocket socket = null;
@@ -83,14 +86,14 @@ public abstract class AbstractManager implements Runnable {
 	}
 
 	public void start() {
-		System.out.println("AbstractManager: Starting " + getClass().getSimpleName());
+		logger.log(Level.INFO, "AbstractManager: Starting {0}", getClass().getSimpleName());
 		if (thread == null) {
 			doStop = false;
 			String name = getClass().getSimpleName();
 			thread = new Thread(this, name);
 			thread.start();
 		} else {
-			System.out.println("Already started before " + getClass().getSimpleName());
+			logger.log(Level.WARNING, "Already started before {0}", getClass().getSimpleName());
 		}
 	}
 }
