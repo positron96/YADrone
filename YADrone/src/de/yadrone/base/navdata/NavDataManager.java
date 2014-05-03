@@ -30,11 +30,14 @@ import de.yadrone.base.command.DetectionType;
 import de.yadrone.base.exception.IExceptionListener;
 import de.yadrone.base.manager.AbstractManager;
 import de.yadrone.base.utils.ARDroneUtils;
+import java.util.logging.Logger;
 
 //TODO: refactor parsing code into separate classes but need to think about how to put the listener code
 //option: make it one abstract listener, disadvantage: each client has many methods to implement
 public class NavDataManager extends AbstractManager 
 {
+	
+	private static final Logger logger = Logger.getLogger(NavDataManager.class.getName());
 
 	private IExceptionListener excListener;
 	
@@ -383,8 +386,9 @@ public class NavDataManager extends AbstractManager
 			} 
 			catch (SocketTimeoutException t) 
 			{
-				System.err.println("Navdata reception timeout");
-				excListener.exeptionOccurred(new de.yadrone.base.exception.NavDataException(t));
+				//System.err.println("Navdata reception timeout");
+				logger.warning("Navdata reception timeout");
+				//excListener.exeptionOccurred(new de.yadrone.base.exception.NavDataException(t));
 			} 
 			catch (Throwable t) 
 			{

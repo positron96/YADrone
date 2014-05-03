@@ -30,10 +30,13 @@ import de.yadrone.base.exception.ConfigurationException;
 import de.yadrone.base.exception.IExceptionListener;
 import de.yadrone.base.manager.AbstractTCPManager;
 import de.yadrone.base.utils.ARDroneUtils;
+import java.net.ConnectException;
+import java.util.logging.Logger;
 
 // TODO consider to connect to the control port permanently
 public class ConfigurationManager extends AbstractTCPManager 
 {
+	private static final Logger logger = Logger.getLogger(ConfigurationManager.class.getName());
 	private IExceptionListener excListener;
 	
 	private CommandManager manager = null;
@@ -50,6 +53,9 @@ public class ConfigurationManager extends AbstractTCPManager
 		try
 		{
 			connect(ARDroneUtils.CONTROL_PORT);
+		}
+		catch(ConnectException ce) {
+			logger.warning("Connect exception: "+ce);
 		}
 		catch(Exception exc)
 		{

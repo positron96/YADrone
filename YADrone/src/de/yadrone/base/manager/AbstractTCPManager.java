@@ -43,7 +43,6 @@ public abstract class AbstractTCPManager implements Runnable {
 			socket = new Socket(inetaddr, port);
 			socket.setSoTimeout(3000);
 		} catch (IOException e) {
-			e.printStackTrace();
 			connected = false;
 			throw e;
 		}

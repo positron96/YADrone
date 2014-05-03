@@ -27,6 +27,7 @@ import de.yadrone.base.exception.IExceptionListener;
 import de.yadrone.base.exception.VideoException;
 import de.yadrone.base.manager.AbstractTCPManager;
 import de.yadrone.base.utils.ARDroneUtils;
+import java.net.ConnectException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -127,6 +128,10 @@ public class VideoManager extends AbstractTCPManager implements ImageListener
 				oo.flush();
 			}*/
 			decoder.decode(getInputStream());
+		}
+		catch(ConnectException ce) {
+			logger.log(Level.WARNING, "Connect exception, quitting video thread");
+			Thread.currentThread().interrupt();
 		}
 		catch(Exception exc)
 		{
